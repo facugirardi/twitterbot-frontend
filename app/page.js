@@ -1,95 +1,216 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client"; // Necesario para usar hooks en el App Router
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { getAccounts, loginWithTwitter } from "../lib/api";
+import { Container, Row, Col, Modal, Nav, Navbar, Spinner, Alert, Button  } from "react-bootstrap";
+import { usePathname } from "next/navigation"; // Importar usePathname
+import { House, ChatText, Clipboard, Trash } from "phosphor-react";
+import './style.css'
+import "bootstrap/dist/css/bootstrap.min.css";
 
 export default function Home() {
-  return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>app/page.js</code>.
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    const [accounts, setAccounts] = useState([]); // 🔹 Siempre inicializa como un array
+    const router = useRouter();
+    const [isSidebarOpen, setSidebarOpen] = useState(true);
+    const [loading, setLoading] = useState(true); // Estado para el loader
+    const [messages, setMessages] = useState([]);
+    const pathname = usePathname(); // Obtener la URL actual
+    const [showModal, setShowModal] = useState(false);
+    const [selectedAccount, setSelectedAccount] = useState(null);
+    const [isFetching, setIsFetching] = useState(false);  // Estado para saber si el proceso está activo
 
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
+    useEffect(() => {
+        const fetchAccounts = async () => {
+            try {
+                const data = await getAccounts();
+                setAccounts(Array.isArray(data) ? data : []); // 🔹 Asegura que siempre sea un array
+            } catch (error) {
+                console.error("❌ Error al obtener cuentas:", error);
+                setAccounts([]); // 🔹 Si hay un error, mantiene un array vacío
+            }
+        };
+
+
+        const checkFetchingStatus = async () => {
+          try {
+              const response = await fetch('http://localhost:5000/status-fetch');
+              const data = await response.json();
+              setIsFetching(data.status === "running"); // Actualiza el estado con la respuesta del servidor
+            } catch (error) {
+              console.error("❌ Error al verificar el estado de recolección:", error);
+          }
+      };
+
+        checkFetchingStatus(); 
+        fetchAccounts();
+        setTimeout(() => setLoading(false), 1500);
+    }, []);
+
+    const handleShowModal = (twitterId) => {
+      setSelectedAccount(twitterId);
+      setShowModal(true);
+  };
+  
+  const handleCloseModal = () => {
+      setShowModal(false);
+      setSelectedAccount(null);
+  };
+
+  const startStopProcess = async () => {
+    if (isFetching) {
+        // Detener el proceso
+        const response = await fetch('http://localhost:5000/stop-fetch', { method: 'POST' });
+        if (response.ok) {
+          const statusResponse = await fetch('http://localhost:5000/status-fetch'); // Verificar estado
+          const statusData = await statusResponse.json();
+          setIsFetching(statusData.status === "running"); // Actualizar estado
+}
+    } else {
+        // Iniciar el proceso
+        const response = await fetch('http://localhost:5000/start-fetch', { method: 'POST' });
+        if (response.ok) {
+          const statusResponse = await fetch('http://localhost:5000/status-fetch'); // Verificar estado
+          const statusData = await statusResponse.json();
+          setIsFetching(statusData.status === "running"); // Actualizar estado
+}
+    }
+};
+
+  const deleteAccount = async () => {
+    if (!selectedAccount) return;
+
+    try {
+        const response = await fetch(`http://localhost:5000/api/account/${selectedAccount}`, {
+            method: "DELETE",
+        });
+
+        if (!response.ok) {
+            throw new Error("Error al eliminar la cuenta");
+        }
+
+        setAccounts(accounts.filter((account) => account.twitter_id !== selectedAccount));
+    } catch (error) {
+        console.error("❌ Error al eliminar la cuenta:", error);
+    } finally {
+        handleCloseModal();
+    }
+};
+
+    const toggleSidebar = () => {
+        setSidebarOpen((prev) => !prev);
+      };
+
+    if (loading) {
+        // Mostrar el loader mientras el estado `loading` sea true
+        return (
+          <div className="loader-container">
+            <Spinner animation="border" role="status" className="loader">
+              <span className="visually-hidden">Loading...</span>
+            </Spinner>
+          </div>
+        );
+      }
+    
+    return (
+        <>
+        <div className={`dashboard ${isSidebarOpen ? "sidebar-open" : ""}`}>
+          {/* Sidebar */}
+          <div className={`sidebar ${isSidebarOpen ? "active" : ""}`}>
+            <Nav defaultActiveKey="/" className="flex-column">
+            <hr className="hr-line"/>
+              <Nav.Link
+                href="/"
+                className={`textl hometext ${pathname === "/" ? "active-link" : ""}`}
+              >
+                <House size={20} weight="bold" className="me-2" /> Home
+              </Nav.Link>
+              <Nav.Link
+                href="/dashboard"
+                className={`textl ${pathname === "/dashboard" ? "active-link" : ""}`}
+              >
+                <Clipboard  size={20} weight="bold" className="me-2" /> Coming Soon
+              </Nav.Link>
+              <Nav.Link
+                href="/messages"
+                className={`textl ${pathname === "/messages" ? "active-link" : ""}`}
+              >
+                <ChatText size={20} weight="bold" className="me-2" /> Coming Soon
+              </Nav.Link>
+            </Nav>
+          </div>
+  
+          {/* Main Content */}
+          <div className="main-content">
+            {/* Topbar */}
+            <Navbar className="navbar px-3">
+              <button
+                className="btn btn-outline-primary d-lg-none"
+                onClick={toggleSidebar}
+              >
+                <i className="bi bi-list"></i>
+              </button>
+            </Navbar>
+  
+            {/* Page Content */}
+            <Container fluid className="py-4">
+            <Row>
+            <div className="col-12 col-md-5">
+            <h5 className="dashboard-title">Dashboard <span className="mensajes-title">&gt; Home</span></h5>
+            </div>
+            <div className="col-md-3">
+            </div>
+            <div className="col-12 col-md-2 d-flex justify-content-center">
+              <button 
+                  className={`text-center btn ${isFetching ? 'btn-danger' : 'btn-primary'} btn-read`} 
+                  onClick={startStopProcess}
+              >
+                  {isFetching ? 'Stop Process' : 'Start Process'}
+              </button>
+            </div>
+            <div className="col-12 col-md-2 d-flex justify-content-center">
+              <button className="text-center btn btn-primary btn-read" 
+              onClick={loginWithTwitter}
+              >Add Account
+              </button>
+            </div>
+            </Row>
+            {accounts.length === 0 ? (
+                <Alert variant="warning" className="alertme text-center">No accounts found.</Alert>
+              ) : (
+                <Row className="mtrow d-flex justify-content-center">
+                  {accounts.map((account) => (
+                    <Col xs={12} md={5} key={account.twitter_id} className="col-message"
+                    onClick={() => window.location.href = `/account/${account.twitter_id}`}>
+                      <Button variant="primary" className={`btnv w-100 mb-2 d-flex justify-content-between align-items-center`}>
+                        <span className="username-btn">@{account.username}</span>
+                        <span className="trash-btn" onClick={(e) => {
+                            e.stopPropagation(); // Para que no navegue a la cuenta
+                            handleShowModal(account.twitter_id);
+                        }}>
+                            <Trash size={20} />
+                        </span>
+                      </Button>
+                    </Col>
+                  ))}
+                </Row>
+              )}
+            </Container>
+          </div>
         </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
-  );
+
+        <Modal show={showModal} className='modal-delete' onHide={handleCloseModal} centered>
+            <Modal.Header closeButton>
+                <Modal.Title>Confirm Deletion</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>Are you sure you want to delete this account?</Modal.Body>
+            <Modal.Footer>
+                <Button variant="secondary" onClick={handleCloseModal}>Cancel</Button>
+                <Button variant="danger" onClick={deleteAccount}>Delete</Button>
+            </Modal.Footer>
+        </Modal>
+
+      </>
+  
+    );
 }
