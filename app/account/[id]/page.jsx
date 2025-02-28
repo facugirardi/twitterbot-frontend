@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Container, Row, Nav, Navbar, Spinner, Button, Badge, Col } from "react-bootstrap";
-import { House, ChatText, Clipboard } from "phosphor-react";
+import { House, ChatText, Monitor, Key, Prohibit } from "phosphor-react";
 import './style.css';
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -147,11 +147,26 @@ export default function Home() {
                         <Nav.Link href="/" className={`textl hometext ${pathname === "/" ? "active-link" : ""}`}>
                             <House size={20} weight="bold" className="me-2" /> Home
                         </Nav.Link>
-                        <Nav.Link href="/dashboard" className={`textl ${pathname === "/dashboard" ? "active-link" : ""}`}>
-                            <Clipboard size={20} weight="bold" className="me-2" /> Coming Soon
+                        <Nav.Link
+                            href="/api-status"
+                            className={`textl ${pathname === "/api-status" ? "active-link" : ""}`}
+                        >
+                            <Monitor  size={20} weight="bold" className="me-2" /> API Status
                         </Nav.Link>
-                        <Nav.Link href="/messages" className={`textl ${pathname === "/messages" ? "active-link" : ""}`}>
-                            <ChatText size={20} weight="bold" className="me-2" /> Coming Soon
+                        <Nav.Link
+                            href="/api-keys"
+                            className={`textl ${pathname === "/api-keys" ? "active-link" : ""}`}
+                        >
+                            <Key  size={20} weight="bold" className="me-2" /> API Keys
+                        </Nav.Link>
+                        <Nav.Link href="/logs" className={`textl ${pathname === "/logs" ? "active-link" : ""}`}>
+                            <ChatText size={20} weight="bold" className="me-2" /> Logs
+                        </Nav.Link>
+                        <Nav.Link
+                            href="/rate-limits"
+                            className={`textl ${pathname === "/rate-limits" ? "active-link" : ""}`}
+                        >
+                            <Prohibit size={20} weight="bold" className="me-2" /> Rate Limits
                         </Nav.Link>
                     </Nav>
                 </div>
