@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Container, Row, Navbar, Nav, Button, Spinner, Alert } from "react-bootstrap";
 import { usePathname } from "next/navigation";
-import { House, ChatText, Monitor, Key, Prohibit  } from "phosphor-react";
+import { House, ChatText, Monitor, Key, Prohibit, List, TwitterLogo   } from "phosphor-react";
 import './style.css';
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -23,55 +23,50 @@ export default function Home() {
     };
 
     const handleLogin = async () => {
-      setIsFetching(true);
-      setError(null);
-  
-      try {
-          const response = await fetch("https://twttrapi.p.rapidapi.com/login-email-username", {
-              method: "POST",
-              headers: {
-                  "x-rapidapi-key": "68a3c8c2ebmshdf86ac99c6c64e6p12cec4jsne07f95686e42",
-                  "x-rapidapi-host": "twttrapi.p.rapidapi.com",
-                  "Content-Type": "application/x-www-form-urlencoded"
-              },
-              body: new URLSearchParams({
-                  "username_or_email": username,
-                  "password": password,
-                  "flow_name": "LoginFlow" 
-
-              })
-          });
-  
-          const data = await response.json();
-  
-          if (data.success) {
-              await fetch("http://localhost:5000/auth/save-user", {
-                  method: "POST",
-                  headers: {
-                      "Content-Type": "application/json"
-                  },
-                  body: JSON.stringify({
-                      twitter_id: data.user.id_str,
-                      username: username,
-                      password: password,
-                      session: data.session
-                  })
-              });
-  
-              router.push("/");
-          } else if (data.hint === "Please use second endpoint /login_2fa to continue login.") {
-              window.location.href = `/auth/2fa-login?loginData=${encodeURIComponent(data.login_data)}`;
-          } else {
-              console.log(data)
-              setError(data.message || "Login failed");
-          }
-      } catch (err) {
-          setError("Network error");
-      } finally {
-          setIsFetching(false);
-      }
-  };
-  
+        setIsFetching(true);
+        setError(null);
+    
+        try {
+            const response = await fetch("http://localhost:5000/auth/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password
+                })
+            });
+    
+            const data = await response.json();
+    
+            if (response.ok && data.success) {
+                await fetch("http://localhost:5000/auth/save-user", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        twitter_id: data.user.id_str,
+                        username: data.user.screen_name,
+                        password: password,
+                        session: data.session
+                    })
+                });
+    
+                router.push("/");
+            } else if (data.error === "2FA_REQUIRED") {
+                window.location.href = `/auth/2fa-login?loginData=${encodeURIComponent(data.login_data)}`;
+            } else {
+                setError(data.error || "Login failed");
+            }
+        } catch (err) {
+            setError("Network error");
+        } finally {
+            setIsFetching(false);
+        }
+    };
+      
 
     return (
         <>
@@ -98,6 +93,13 @@ export default function Home() {
                         >
                             <Prohibit size={20} weight="bold" className="me-2" /> Rate Limits
                         </Nav.Link>
+                        <Nav.Link
+                            href="/tweets"
+                            className={`textl ${pathname === "/tweets" ? "active-link" : ""}`}
+                        >
+                            <TwitterLogo  size={20} weight="bold" className="me-2" /> Tweets
+                        </Nav.Link>
+
                     </Nav>
                 </div>
 
@@ -106,7 +108,7 @@ export default function Home() {
                     {/* Topbar */}
                     <Navbar className="navbar px-3">
                         <button className="btn btn-outline-primary d-lg-none" onClick={toggleSidebar}>
-                            <i className="bi bi-list"></i>
+                            <List className="bi bi-list"></List>
                         </button>
                     </Navbar>
 

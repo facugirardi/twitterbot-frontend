@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Container, Row, Nav, Navbar, Spinner } from "react-bootstrap";
 import { usePathname } from "next/navigation"; 
-import { House, ChatText, Monitor, Key, Prohibit  } from "phosphor-react";
+import { House, ChatText, Monitor, Key, Prohibit, List, TwitterLogo   } from "phosphor-react";
 import './style.css';
 import "bootstrap/dist/css/bootstrap.min.css";
 import { getAccounts } from "../../lib/api";
@@ -102,6 +102,12 @@ export default function Home() {
               >
                 <Prohibit size={20} weight="bold" className="me-2" /> Rate Limits
               </Nav.Link>
+              <Nav.Link
+                href="/tweets"
+                className={`textl ${pathname === "/tweets" ? "active-link" : ""}`}
+              >
+                <TwitterLogo  size={20} weight="bold" className="me-2" /> Tweets
+              </Nav.Link>
             </Nav>
           </div>
   
@@ -110,7 +116,7 @@ export default function Home() {
             {/* Topbar */}
             <Navbar className="navbar px-3">
               <button className="btn btn-outline-primary d-lg-none" onClick={toggleSidebar}>
-                <i className="bi bi-list"></i>
+                <List className="bi bi-list"></List>
               </button>
             </Navbar>
   

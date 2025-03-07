@@ -293,8 +293,46 @@ body{
 
 
 @media (max-width: 768px) {
+  .input-style-1 {
+    width: 80%;
+  }
+
+  .btn-save{
+    width:40%;
+  }
+
+  .input-style-2{
+    width: 80%;
+  }
+  
+  .title-central{
+    font-size: 15px;
+    margin-right: 20px !important;
+    margin-left: 20px !important;
+  }
+
+  .language-select{
+    width: 30% !important;
+  }
     .row>* {
         width: 100%;
     }
+}
+
+@media (max-width: 468px) {
+
+  .language-select{
+    width: 70% !important;
+  }
+}
+
+
+@media (min-width:768px) and (max-width: 1400px) {
+  .btn-save{
+    width:20%;
+  }
+  .language-select{
+    width: 15% !important;
+  }
 }
 

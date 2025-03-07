@@ -15,18 +15,6 @@ body{
     margin-left: 20px;
 }
 
-.in{
-  width: 80% !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-}
-
-.label-in{
-  display: flex !important;
-
-  margin-left: 10% !important;
-}
-
 .hometext{
     margin-top: 5px;
 }
@@ -51,11 +39,53 @@ body{
 }
 
 .alertme{
-    margin-top: 50px !important;
-    width: 70%;
+    margin-top: 20% !important;
+    width: 70% !important;
     margin-left: auto;
     font-size: 14px;
     margin-right: auto;
+}
+
+.btn-d1{
+  margin-right: 3% !important;
+  border-radius: 50px !important;
+  width: 15%;
+}
+
+
+.btn-d2{
+  border-radius: 50px !important;
+  margin-left: 3% !important;
+  width: 15%;
+  background-color: white !important;
+  color: red !important;
+}
+
+.btn-d2:hover{
+  background-color: red !important;
+  color: white !important;
+
+}
+
+.modal{
+  font-family: 'Poppins', sans-serif;
+}
+
+.btns-s{
+  margin-top: 50px;
+}
+
+.row-all{
+  margin-top: 50px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  width: 90%;
+}
+
+.tweet-card{
+  padding: 35px;
+  border-radius: 17px;
+  border: 1px solid #bcbcbc;
 }
 
 .dashboard{
@@ -75,11 +105,6 @@ body{
     margin-right: auto;
     margin-left: auto;
 
-}
-
-.btn-save{
-  margin-top: 50px;
-  width: 10%;
 }
 
 .mensajes-title{
@@ -214,32 +239,17 @@ body{
     margin-left: 250px;
   }
 
-  .icon-api{
-    margin-left: auto;
-    margin-right: auto;
-    width: 10% !important;
-  }
-
-  .title-api{
-    margin-top: 20px;
-    font-size: 19px;
-  }
-  .p-api{
-    margin-top: 10px;
-    font-size: 14px;
-  }
-
-  .div-api{
-    padding: 70px;
-    margin-left: auto;
-    margin-right: auto;
-    width: 40% !important;
-    border: 1px solid #dee2e6;
-    border-radius: 16px;
-    margin-top: 60px !important;
-  }
 
   @media (max-width: 991px) {
+    .btn-d1{
+      width: 50%;
+    }
+    
+    
+    .btn-d2{
+      width: 50%;
+    }
+    
     body {
       overflow-x: hidden !important; /* Evita el scroll lateral en móviles */
     }
@@ -259,10 +269,11 @@ body{
 
 
 @media (max-width: 768px) {
-  .btn-save{
-    width: 20%;
+
+  .dashboard-title{
+    margin-bottom: 0px !important;
   }
-  
+
     .row>* {
         width: 100%;
     }

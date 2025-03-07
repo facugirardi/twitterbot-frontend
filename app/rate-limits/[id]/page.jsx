@@ -1,74 +1,86 @@
-"use client"; // Necesario para usar hooks en el App Router
+"use client";
 
 import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation"; // Obtener loginData desde la URL
-import { Container, Row, Nav, Navbar, Spinner, Alert, Button } from "react-bootstrap";
+import { useRouter } from "next/navigation";
+import { Container, Row, Navbar, Nav, Spinner, Alert, Button } from "react-bootstrap";
 import { usePathname } from "next/navigation";
-import { House, ChatText, Monitor, Key, Prohibit, List, TwitterLogo   } from "phosphor-react";
+import { House, ChatText, Prohibit, Monitor, Key, TwitterLogo  } from "phosphor-react";
 import './style.css';
 import "bootstrap/dist/css/bootstrap.min.css";
 
-export default function TwoFALogin() {
+export default function Home() {
     const [isSidebarOpen, setSidebarOpen] = useState(true);
-    const [loading, setLoading] = useState(true); // Loader inicial
+    const [loading, setLoading] = useState(true);
     const pathname = usePathname();
-    const searchParams = useSearchParams();
-    const loginData = searchParams.get("loginData"); // Capturar loginData de la URL
-
-    const [otp, setOtp] = useState("");
-    const [isFetching, setIsFetching] = useState(false);
-    const [error, setError] = useState(null);
+    const [rateLimit, setRateLimit] = useState("");  
+    const [message, setMessage] = useState(null); 
+    const [isSaving, setIsSaving] = useState(false);
+    const twitterId = window.location.pathname.split("/").pop();
 
     useEffect(() => {
-        setTimeout(() => setLoading(false), 1500);
-    }, []);
+      const fetchRateLimit = async () => {
+          try {
+            const response = await fetch(`http://localhost:5000/logs/get_rate_limit?twitter_id=${twitterId}`);
+            const data = await response.json();
+              
+              if (response.ok) {
+                  setRateLimit(data.rate_limit);
+              } else {
+                  setMessage({ type: "danger", text: "Error obteniendo el rate limit." });
+              }
+          } catch (error) {
+              console.error("Error obteniendo el rate limit:", error);
+              setMessage({ type: "danger", text: "Error de conexión con el servidor." });
+          }
+      };
+
+      fetchRateLimit();
+      setTimeout(() => setLoading(false), 1500);
+  }, []);
 
     const toggleSidebar = () => {
         setSidebarOpen((prev) => !prev);
     };
 
-    const handle2FALogin = async () => {
-        setIsFetching(true);
-        setError(null);
-    
+    const handleRateLimitChange = (e) => {
+        setRateLimit(e.target.value);
+    };
+
+    const handleSaveRateLimit = async () => {
+        if (!rateLimit || rateLimit <= 0) {
+            setMessage({ type: "danger", text: "El límite debe ser un número mayor a 0." });
+            return;
+        }
+
+        setIsSaving(true);
+        setMessage(null);
+
         try {
-            const response = await fetch("http://localhost:5000/auth/login-2fa", {
+            const response = await fetch("http://localhost:5000/logs/update_rate_limit", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    login_data: loginData,
-                    otp: otp
+                    twitter_id: twitterId, 
+                    rate_limit: parseInt(rateLimit)
                 })
             });
-    
+
             const data = await response.json();
-    
-            if (response.ok && data.success) {
-                await fetch("http://localhost:5000/auth/save-user", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        twitter_id: data.user.id_str,
-                        username: data.user.screen_name,
-                        session: data.session
-                    })
-                });
-    
-                window.location.href = "/";
+            
+            if (response.ok) {
+                setMessage({ type: "success", text: "Rate limit updated." });
             } else {
-                setError(data.error || "Invalid code. Try again.");
+                setMessage({ type: "danger", text: data.error || "Error." });
             }
-        } catch (err) {
-            setError("Network error. Please try again.");
-        } finally {
-            setIsFetching(false);
+        } catch (error) {
+            setMessage({ type: "danger", text: "Error connecting to the server." });
         }
+
+        setIsSaving(false);
     };
-    
+
     if (loading) {
         return (
             <div className="loader-container">
@@ -98,10 +110,7 @@ export default function TwoFALogin() {
                         <Nav.Link href="/logs" className={`textl ${pathname === "/logs" ? "active-link" : ""}`}>
                             <ChatText size={20} weight="bold" className="me-2" /> Logs
                         </Nav.Link>
-                        <Nav.Link
-                            href="/rate-limits"
-                            className={`textl ${pathname === "/rate-limits" ? "active-link" : ""}`}
-                        >
+                        <Nav.Link href="/rate-limits" className={`textl ${pathname === "/rate-limits" ? "active-link" : ""}`}>
                             <Prohibit size={20} weight="bold" className="me-2" /> Rate Limits
                         </Nav.Link>
                         <Nav.Link
@@ -110,7 +119,6 @@ export default function TwoFALogin() {
                         >
                             <TwitterLogo  size={20} weight="bold" className="me-2" /> Tweets
                         </Nav.Link>
-
                     </Nav>
                 </div>
 
@@ -119,7 +127,7 @@ export default function TwoFALogin() {
                     {/* Topbar */}
                     <Navbar className="navbar px-3">
                         <button className="btn btn-outline-primary d-lg-none" onClick={toggleSidebar}>
-                            <List className="bi bi-list"></List>
+                            <i className="bi bi-list"></i>
                         </button>
                     </Navbar>
 
@@ -127,37 +135,36 @@ export default function TwoFALogin() {
                     <Container fluid className="py-4">
                         <Row>
                             <div className="col-12 col-md-5">
-                                <h5 className="dashboard-title">Dashboard <span className="mensajes-title">&gt; 2FA Login</span></h5>
+                                <h5 className="dashboard-title">Dashboard <span className="mensajes-title">&gt; Rate Limits</span></h5>
                             </div>
                         </Row>
                         <Row>
-                            <div className="container-login col-11 col-md-4">
-                                <div className="mb-3">
-                                    <h1 className="text-center h1-2fa">
-                                        A login code was sent <br />
-                                        by X to your email
-                                    </h1>
-                                </div>
-                                <div className="in2 mb-3">
-                                    <label htmlFor="code" className="label-in form-label">Code</label>
+                            <div className="div-api col-12 col-md-12">
+                                <h1 className="text-center title-api2">Rate Limits</h1>
+                                
+                                <div className="d-flex justify-content-center">
                                     <input 
-                                        type="text" 
-                                        className="in form-control" 
-                                        placeholder="Enter code" 
-                                        value={otp}
-                                        onChange={(e) => setOtp(e.target.value)}
+                                        type="number" 
+                                        className="input-rate"
+                                        value={rateLimit}
+                                        onChange={handleRateLimitChange}
+                                        min="1"
                                     />
+                                    <p className="p-api">Posts Per Hour</p>
                                 </div>
-                                {error && <Alert variant="danger">{error}</Alert>}
-                                <div className="d-flex justify-content-center col-12 col-md-12">
+                                
+                                <div className="d-flex justify-content-center">
                                     <Button 
-                                        className="btn-save btn-style-1" 
-                                        onClick={handle2FALogin} 
-                                        disabled={isFetching}
+                                        className="btn-save btn-read btn" 
+                                        onClick={handleSaveRateLimit}
+                                        disabled={isSaving}
                                     >
-                                        {isFetching ? <Spinner size="sm" animation="border" /> : "Login"}
+                                        {isSaving ? "Saving..." : "Save"}
                                     </Button>
                                 </div>
+
+                                {message && <Alert variant={message.type} className="messsage-alert text-center">{message.text}</Alert>}
+
                             </div>
                         </Row>
                     </Container>

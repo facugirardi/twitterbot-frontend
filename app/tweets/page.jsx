@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getAccounts } from "../../lib/api";
-import { Container, Row, Col, Nav, Navbar, Spinner, Alert, Button  } from "react-bootstrap";
+import { Container, Row, Col, Nav, Navbar, Spinner, Alert, Button } from "react-bootstrap";
 import { usePathname } from "next/navigation"; 
 import { House, ChatText, Prohibit, Monitor, Key, List, TwitterLogo  } from "phosphor-react";
 import './style.css'
@@ -12,6 +12,7 @@ export default function Home() {
     const [accounts, setAccounts] = useState([]); 
     const [isSidebarOpen, setSidebarOpen] = useState(true);
     const [loading, setLoading] = useState(true); 
+    const [isPosting, setIsPosting] = useState(false);  // Estado para verificar si el proceso está activo
     const pathname = usePathname(); 
 
     useEffect(() => {
@@ -25,14 +26,46 @@ export default function Home() {
             }
         };
 
+        const checkPostingStatus = async () => {
+            try {
+                const response = await fetch('http://localhost:5000/status-post');
+                const data = await response.json();
+                setIsPosting(data.status === "running"); // Actualiza el estado con la respuesta del servidor
+            } catch (error) {
+                console.error("❌ Error al verificar el estado de publicación:", error);
+            }
+        };
+
+        checkPostingStatus(); 
         fetchAccounts();
         setTimeout(() => setLoading(false), 1500);
     }, []);
 
 
+  
+    const startStopPosting = async () => {
+        if (isPosting) {
+            // Detener el proceso
+            const response = await fetch('http://localhost:5000/stop-post', { method: 'POST' });
+            if (response.ok) {
+                const statusResponse = await fetch('http://localhost:5000/status-post'); // Verificar estado
+                const statusData = await statusResponse.json();
+                setIsPosting(statusData.status === "running"); // Actualizar estado
+            }
+        } else {
+            // Iniciar el proceso
+            const response = await fetch('http://localhost:5000/start-post', { method: 'POST' });
+            if (response.ok) {
+                const statusResponse = await fetch('http://localhost:5000/status-post'); // Verificar estado
+                const statusData = await statusResponse.json();
+                setIsPosting(statusData.status === "running"); // Actualizar estado
+            }
+        }
+    };
+
     const toggleSidebar = () => {
         setSidebarOpen((prev) => !prev);
-      };
+    };
 
     if (loading) {
         return (
@@ -42,7 +75,7 @@ export default function Home() {
             </Spinner>
           </div>
         );
-      }
+    }
     
     return (
         <>
@@ -51,34 +84,19 @@ export default function Home() {
           <div className={`sidebar ${isSidebarOpen ? "active" : ""}`}>
             <Nav defaultActiveKey="/" className="flex-column">
             <hr className="hr-line"/>
-              <Nav.Link
-                href="/"
-                className={`textl hometext ${pathname === "/" ? "active-link" : ""}`}
-              >
+              <Nav.Link href="/" className={`textl hometext ${pathname === "/" ? "active-link" : ""}`}>
                 <House size={20} weight="bold" className="me-2" /> Home
               </Nav.Link>
-              <Nav.Link
-                href="/api-status"
-                className={`textl ${pathname === "/api-status" ? "active-link" : ""}`}
-              >
-                <Monitor  size={20} weight="bold" className="me-2" /> API Status
+              <Nav.Link href="/api-status" className={`textl ${pathname === "/api-status" ? "active-link" : ""}`}>
+                <Monitor size={20} weight="bold" className="me-2" /> API Status
               </Nav.Link>
-              <Nav.Link
-                href="/api-keys"
-                className={`textl ${pathname === "/api-keys" ? "active-link" : ""}`}
-              >
-                <Key  size={20} weight="bold" className="me-2" /> API Keys
+              <Nav.Link href="/api-keys" className={`textl ${pathname === "/api-keys" ? "active-link" : ""}`}>
+                <Key size={20} weight="bold" className="me-2" /> API Keys
               </Nav.Link>
-              <Nav.Link
-                href="/logs"
-                className={`textl ${pathname === "/logs" ? "active-link" : ""}`}
-              >
+              <Nav.Link href="/logs" className={`textl ${pathname === "/logs" ? "active-link" : ""}`}>
                 <ChatText size={20} weight="bold" className="me-2" /> Logs
               </Nav.Link>
-              <Nav.Link
-                href="/rate-limits"
-                className={`textl ${pathname === "/rate-limits" ? "active-link" : ""}`}
-              >
+              <Nav.Link href="/rate-limits" className={`textl ${pathname === "/rate-limits" ? "active-link" : ""}`}>
                 <Prohibit size={20} weight="bold" className="me-2" /> Rate Limits
               </Nav.Link>
               <Nav.Link
@@ -94,10 +112,7 @@ export default function Home() {
           <div className="main-content">
             {/* Topbar */}
             <Navbar className="navbar px-3">
-              <button
-                className="btn btn-outline-primary d-lg-none"
-                onClick={toggleSidebar}
-              >
+              <button className="btn btn-outline-primary d-lg-none" onClick={toggleSidebar}>
                 <List className="bi bi-list"></List>
               </button>
             </Navbar>
@@ -106,7 +121,17 @@ export default function Home() {
             <Container fluid className="py-4">
             <Row>
             <div className="col-12 col-md-5">
-            <h5 className="dashboard-title">Dashboard <span className="mensajes-title">&gt; Rate Limits</span></h5>
+            <h5 className="dashboard-title">Dashboard <span className="mensajes-title">&gt; Tweets</span></h5>
+            </div>
+            <div className="col-md-5">
+            </div>
+            <div className="col-12 col-md-2 d-flex justify-content-center">
+              <button 
+                  className={`text-center btn ${isPosting ? 'btn-danger' : 'btn-primary'} btn-read`} 
+                  onClick={startStopPosting}
+              >
+                  {isPosting ? 'Stop Posting' : 'Start Posting'}
+              </button>
             </div>
             </Row>
             {accounts.length === 0 ? (
@@ -114,8 +139,8 @@ export default function Home() {
               ) : (
                 <Row className="mtrow d-flex justify-content-center">
                   {accounts.map((account) => (
-                    <Col xs={12} md={5} key={account.twitter_id} className="col-message"
-                    onClick={() => window.location.href = `/rate-limits/${account.twitter_id}`}>
+                    <Col xs={12} md={5} key={account.id} className="col-message"
+                    onClick={() => window.location.href = `/tweets/${account.id}`}>  
                       <Button variant="primary" className={`btnv w-100 mb-2 d-flex justify-content-between align-items-center`}>
                         <span className="username-btn">@{account.username}</span>
                       </Button>
@@ -126,9 +151,6 @@ export default function Home() {
             </Container>
           </div>
         </div>
-
-
       </>
-  
     );
 }

@@ -1,131 +1,110 @@
-"use client"; // Necesario para usar hooks en el App Router
+"use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Container, Row, Col, Modal, Nav, Navbar, Spinner, Alert, Button  } from "react-bootstrap";
-import { usePathname } from "next/navigation"; // Importar usePathname
-import { House, ChatText, Prohibit , Trash, Monitor, Key } from "phosphor-react";
-import './style.css'
+import { Container, Row, Col, Navbar, Nav, Spinner, Alert, Button } from "react-bootstrap";
+import { usePathname } from "next/navigation";
+import { House, ChatText, Prohibit, List, Monitor, Key, TwitterLogo } from "phosphor-react";
+import "./style.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 export default function Home() {
     const [isSidebarOpen, setSidebarOpen] = useState(true);
-    const [loading, setLoading] = useState(true); // Estado para el loader
-    const pathname = usePathname(); // Obtener la URL actual
-    const [isFetching, setIsFetching] = useState(false);  // Estado para saber si el proceso está activo
-    const [error, setError] = useState(false); // Estado para manejar errores
+    const [loading, setLoading] = useState(true);
+    const [apiKeys, setApiKeys] = useState({ openai: "", socialdata: "", rapidapi: "" });
+    const [isFetching, setIsFetching] = useState(false);
+    const [error, setError] = useState(false);
+    const pathname = usePathname();
+    const [message, setMessage] = useState(""); // Estado para mostrar mensajes
 
     useEffect(() => {
-        setTimeout(() => setLoading(false), 1500);
+        fetch("http://localhost:5000/logs/api-keys")
+            .then((res) => res.json())
+            .then((data) => setApiKeys(data))
+            .catch(() => setError(true))
+            .finally(() => setLoading(false));
     }, []);
 
+    const handleInputChange = (e) => {
+        setApiKeys({ ...apiKeys, [e.target.name]: e.target.value });
+    };
 
-
-    const toggleSidebar = () => {
-        setSidebarOpen((prev) => !prev);
-      };
+    const saveApiKeys = () => {
+        setIsFetching(true);
+        setMessage("");
+        fetch("http://localhost:5000/logs/api-keys", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(apiKeys),
+        })
+            .then((res) => res.json())
+            .then(() => setMessage("API Keys actualizadas correctamente"))
+            .catch(() => setMessage("Error al actualizar API Keys"))
+            .finally(() => setIsFetching(false));
+    };
 
     if (loading) {
-        // Mostrar el loader mientras el estado `loading` sea true
         return (
-          <div className="loader-container">
-            <Spinner animation="border" role="status" className="loader">
-              <span className="visually-hidden">Loading...</span>
-            </Spinner>
-          </div>
-        );
-      }
-    
-    return (
-        <>
-        <div className={`dashboard ${isSidebarOpen ? "sidebar-open" : ""}`}>
-          {/* Sidebar */}
-          <div className={`sidebar ${isSidebarOpen ? "active" : ""}`}>
-            <Nav defaultActiveKey="/" className="flex-column">
-            <hr className="hr-line"/>
-              <Nav.Link
-                href="/"
-                className={`textl hometext ${pathname === "/" ? "active-link" : ""}`}
-              >
-                <House size={20} weight="bold" className="me-2" /> Home
-              </Nav.Link>
-              <Nav.Link
-                href="/api-status"
-                className={`textl ${pathname === "/api-status" ? "active-link" : ""}`}
-              >
-                <Monitor  size={20} weight="bold" className="me-2" /> API Status
-              </Nav.Link>
-              <Nav.Link
-                href="/api-keys"
-                className={`textl ${pathname === "/api-keys" ? "active-link" : ""}`}
-              >
-                <Key  size={20} weight="bold" className="me-2" /> API Keys
-              </Nav.Link>
-              <Nav.Link
-                href="/logs"
-                className={`textl ${pathname === "/logs" ? "active-link" : ""}`}
-              >
-                <ChatText size={20} weight="bold" className="me-2" /> Logs
-              </Nav.Link>
-              <Nav.Link
-                href="/rate-limits"
-                className={`textl ${pathname === "/rate-limits" ? "active-link" : ""}`}
-              >
-                <Prohibit size={20} weight="bold" className="me-2" /> Rate Limits
-              </Nav.Link>
-            </Nav>
-          </div>
-  
-          {/* Main Content */}
-          <div className="main-content">
-            {/* Topbar */}
-            <Navbar className="navbar px-3">
-              <button
-                className="btn btn-outline-primary d-lg-none"
-                onClick={toggleSidebar}
-              >
-                <i className="bi bi-list"></i>
-              </button>
-            </Navbar>
-  
-            {/* Page Content */}
-            <Container fluid className="py-4">
-            <Row>
-            <div className="col-12 col-md-5">
-            <h5 className="dashboard-title">Dashboard <span className="mensajes-title">&gt; API Keys</span></h5>
+            <div className="loader-container">
+                <Spinner animation="border" role="status" className="loader">
+                    <span className="visually-hidden">Loading...</span>
+                </Spinner>
             </div>
-            </Row>
-            <Row>
-              <div className="col-12 col-md-6">
-                <div className="mb-3">
-                  <label htmlFor="apiKey1" className="label-in form-label">OpenAI API Key</label>
-                  <input type="text" className="in form-control"/>
-                </div>
-              </div>
-              <div className="col-12 col-md-6">
-                <div className="mb-3">
-                  <label htmlFor="apiKey1" className="label-in form-label">SocialData API Key</label>
-                  <input type="text" className="in form-control" />
-                </div>
-              </div>
-              <div className="col-12 col-md-6">
-                <div className="mb-3">
-                  <label htmlFor="apiKey1" className="label-in form-label">Twitter API Key</label>
-                  <input type="text" className="in form-control" />
-                </div>
-              </div>
+        );
+    }
 
-              <div className="d-flex justify-content-center col-12 col-md-12">
-                  <Button className="btn-save btn-style-1">Save</Button>
-              </div>
+    return (
+        <div className={`dashboard ${isSidebarOpen ? "sidebar-open" : ""}`}>
+            <div className={`sidebar ${isSidebarOpen ? "active" : ""}`}>
+                <Nav defaultActiveKey="/" className="flex-column">
+                    <hr className="hr-line" />
+                    <Nav.Link href="/" className={`textl hometext ${pathname === "/" ? "active-link" : ""}`}>
+                        <House size={20} weight="bold" className="me-2" /> Home
+                    </Nav.Link>
+                    <Nav.Link href="/api-status" className={`textl ${pathname === "/api-status" ? "active-link" : ""}`}>
+                        <Monitor size={20} weight="bold" className="me-2" /> API Status
+                    </Nav.Link>
+                    <Nav.Link href="/api-keys" className={`textl ${pathname === "/api-keys" ? "active-link" : ""}`}>
+                        <Key size={20} weight="bold" className="me-2" /> API Keys
+                    </Nav.Link>
+                </Nav>
+            </div>
 
-            </Row>
+            <div className="main-content">
+                <Navbar className="navbar px-3">
+                    <button className="btn btn-outline-primary d-lg-none" onClick={() => setSidebarOpen(!isSidebarOpen)}>
+                        <List className="bi bi-list" />
+                    </button>
+                </Navbar>
 
-            </Container>
-          </div>
+                <Container fluid className="py-4">
+                    <Row>
+                        <Col md={5}><h5 className="dashboard-title">Dashboard <span className="mensajes-title">&gt; API Keys</span></h5></Col>
+                    </Row>
+                    <Row>
+                        {Object.entries(apiKeys).map(([keyName, keyValue]) => (
+                            <Col md={6} key={keyName}>
+                                <div className="mb-3">
+                                    <label className="label-in form-label">{keyName.toUpperCase()} API Key</label>
+                                    <input type="text" className="in form-control" placeholder='Enter your API Key' name={keyName} value={keyValue || ''} onChange={handleInputChange} />
+                                </div>
+                            </Col>
+                        ))}
+                    </Row>
+                    <div className="d-flex justify-content-center">
+                        <Button className="btn-save btn-style-1" onClick={saveApiKeys} disabled={isFetching}>
+                            {isFetching ? "Saving..." : "Save"}
+                        </Button>
+                    </div>
+                    {message && (
+                        <Row>
+                            <Col>
+                                <Alert className='alertme' variant={message.includes("Error") ? "danger" : "success"}>{message}</Alert>
+                            </Col>
+                        </Row>
+                    )}
+                </Container>
+            </div>
         </div>
-
-      </>
-  
     );
 }

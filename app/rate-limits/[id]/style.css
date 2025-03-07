@@ -15,16 +15,24 @@ body{
     margin-left: 20px;
 }
 
-.in{
-  width: 80% !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
+.messsage-alert{
+  margin-top: 50px;
 }
 
-.label-in{
-  display: flex !important;
+.btn-save{
+  margin-top: 40px;
+  height: 42.5px;
+  width: 20%;
+  color: #ffffff !important;
+}
 
-  margin-left: 10% !important;
+.input-rate{
+  width: 12%;
+  height: 35px;
+  padding-left: 10px;
+  border-radius: 6px;
+  margin-right: 20px;
+  border: 1px solid #9d9d9d;
 }
 
 .hometext{
@@ -51,7 +59,7 @@ body{
 }
 
 .alertme{
-    margin-top: 50px !important;
+    margin-top: 20% !important;
     width: 70%;
     margin-left: auto;
     font-size: 14px;
@@ -75,11 +83,6 @@ body{
     margin-right: auto;
     margin-left: auto;
 
-}
-
-.btn-save{
-  margin-top: 50px;
-  width: 10%;
 }
 
 .mensajes-title{
@@ -224,6 +227,12 @@ body{
     margin-top: 20px;
     font-size: 19px;
   }
+
+  .title-api2{
+    margin-bottom: 50px;
+    font-size: 24px;
+  }
+
   .p-api{
     margin-top: 10px;
     font-size: 14px;
@@ -259,10 +268,6 @@ body{
 
 
 @media (max-width: 768px) {
-  .btn-save{
-    width: 20%;
-  }
-  
     .row>* {
         width: 100%;
     }

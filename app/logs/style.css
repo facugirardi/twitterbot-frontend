@@ -271,6 +271,13 @@ body{
 
 
 @media (max-width: 768px) {
+  .container-account{
+    width: 90% !important;
+    margin-left: 5% !important;
+    margin-right: 5% !important;
+  }
+  
+  
     .row>* {
         width: 100%;
     }

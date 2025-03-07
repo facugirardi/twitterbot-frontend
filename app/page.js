@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { getAccounts, loginWithTwitter } from "../lib/api";
 import { Container, Row, Col, Modal, Nav, Navbar, Spinner, Alert, Button  } from "react-bootstrap";
 import { usePathname } from "next/navigation"; // Importar usePathname
-import { House, ChatText, Prohibit , Trash, Monitor, Key } from "phosphor-react";
+import { House, ChatText, Prohibit , Trash, Monitor, Key, List, TwitterLogo  } from "phosphor-react";
 import './style.css'
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -149,6 +149,12 @@ export default function Home() {
               >
                 <Prohibit size={20} weight="bold" className="me-2" /> Rate Limits
               </Nav.Link>
+              <Nav.Link
+                href="/tweets"
+                className={`textl ${pathname === "/tweets" ? "active-link" : ""}`}
+              >
+                <TwitterLogo  size={20} weight="bold" className="me-2" /> Tweets
+              </Nav.Link>
             </Nav>
           </div>
   
@@ -160,7 +166,7 @@ export default function Home() {
                 className="btn btn-outline-primary d-lg-none"
                 onClick={toggleSidebar}
               >
-                <i className="bi bi-list"></i>
+                <List className="bi bi-list"></List>
               </button>
             </Navbar>
   

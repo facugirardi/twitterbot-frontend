@@ -15,26 +15,6 @@ body{
     margin-left: 20px;
 }
 
-.messsage-alert{
-  margin-top: 50px;
-}
-
-.btn-save{
-  margin-top: 40px;
-  height: 42.5px;
-  width: 20%;
-  color: #ffffff !important;
-}
-
-.input-rate{
-  width: 12%;
-  height: 35px;
-  padding-left: 10px;
-  border-radius: 6px;
-  margin-right: 20px;
-  border: 1px solid #9d9d9d;
-}
-
 .hometext{
     margin-top: 5px;
 }
@@ -217,36 +197,6 @@ body{
     margin-left: 250px;
   }
 
-  .icon-api{
-    margin-left: auto;
-    margin-right: auto;
-    width: 10% !important;
-  }
-
-  .title-api{
-    margin-top: 20px;
-    font-size: 19px;
-  }
-
-  .title-api2{
-    margin-bottom: 50px;
-    font-size: 24px;
-  }
-
-  .p-api{
-    margin-top: 10px;
-    font-size: 14px;
-  }
-
-  .div-api{
-    padding: 70px;
-    margin-left: auto;
-    margin-right: auto;
-    width: 40% !important;
-    border: 1px solid #dee2e6;
-    border-radius: 16px;
-    margin-top: 60px !important;
-  }
 
   @media (max-width: 991px) {
     body {
@@ -268,6 +218,11 @@ body{
 
 
 @media (max-width: 768px) {
+
+  .dashboard-title{
+    margin-bottom: 0px !important;
+  }
+
     .row>* {
         width: 100%;
     }
